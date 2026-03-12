@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#060608">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AlarmZap">
+<link rel="manifest" href="/manifest.json">
+<title>AlarmZap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Epilogue:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060608;
+  --s1: #0d0d12;
+  --s2: #13131a;
+  --s3: #1a1a24;
+  --border: #22222e;
+  --border2: #2e2e3e;
+  --green: #00e5a0;
+  --green-dim: rgba(0,229,160,0.12);
+  --green-glow: rgba(0,229,160,0.25);
+  --purple: #8b5cf6;
+  --purple-dim: rgba(139,92,246,0.12);
+  --red: #ff4060;
+  --red-dim: rgba(255,64,96,0.12);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251,191,36,0.12);
+  --wa: #25d366;
+  --wa-dim: rgba(37,211,102,0.12);
+  --text: #e2e2ee;
+  --text2: #9090a8;
+  --text3: #55556a;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Epilogue', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* GRID BACKGROUND */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,160,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,160,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 40vh;
+  background: radial-gradient(ellipse at 50% -20%, rgba(0,229,160,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 16px 120px;
+}
+
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0 20px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--green) 0%, #00b8ff 100%);
+  border-radius: 11px;
+  display: grid; place-items: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(0,229,160,0.3);
+}
+
+.brand-name {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.brand-name em { color: var(--green); font-style: normal; }
+
+.live-clock {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text3);
+  letter-spacing: 3px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--s1);
+}
+
+/* ═══════════════════════════════════════
+   STATUS BAR
+═══════════════════════════════════════ */
+.status-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--s1);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+  justify-content: center;
+}
+.status-pill:hover { border-color: var(--border2); color: var(--text); }
+
+.status-pill .pip {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text3);
+  flex-shrink: 0;
+}
+.status-pill.ok { border-color: rgba(0,229,160,0.25); color: var(--green); }
+.status-pill.ok .pip { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-pill.warn { border-color: rgba(251,191,36,0.25); color: var(--amber); }
+.status-pill.warn .pip { background: var(--amber); }
+
+/* ═══════════════════════════════════════
+   NEXT ALARM
+═══════════════════════════════════════ */
+.next-alarm {
+  display: none;
+  background: linear-gradient(135deg, var(--green-dim), var(--purple-dim));
+  border: 1px solid rgba(0,229,160,0.2);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  gap: 16px;
+  align-items: center;
+}
+.next-alarm.show { display: flex; }
+
+.next-alarm-icon { font-size: 26px; }
+.next-alarm-info { flex: 1; }
+.next-alarm-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+.next-alarm-name { font-size: 15px; font-weight: 800; }
+.next-alarm-cd { font-family: var(--mono); font-size: 12px; color: var(--green); margin-top: 3px; }
+.next-alarm-time {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--green);
+  text-align: right;
+}
+
+/* ═══════════════════════════════════════
+   SECTION LABEL
+═══════════════════════════════════════ */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 14px;
+}
+.section-label::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: var(--border);
+}
+
+/* ═══════════════════════════════════════
+   ADD CARD
+═══════════════════════════════════════ */
+.add-card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 24px;
+}
+
+.add-card-title {
+  font-size: 16px;
+  font-weight: 900;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.add-card-title .accent { color: var(--green); }
+
+/* FORM ELEMENTS */
+.field { margin-bottom: 14px; }
+
+.field-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+  display: block;
+}
+
+input[type="text"],
+input[type="time"],
+input[type="tel"],
+textarea,
+select {
+  width: 100%;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-dim);
+}
+input[type="time"] { font-family: var(--mono); font-size: 22px; letter-spacing: 2px; padding: 14px; }
+
+textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+select option { background: var(--s2); }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* DAYS */
+.days-row { display: flex; gap: 6px; }
+.day-btn {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--s2);
+  color: var(--text3);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.day-btn:hover { border-color: var(--border2); color: var(--text); }
+.day-btn.on { background: var(--green-dim); border-color: rgba(0,229,160,0.4); color: var(--green); }
+
+/* WA TOGGLE ROW */
+.wa-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: border-color 0.2s;
+  user-select: none;
+}
+.wa-row:hover { border-color: var(--wa); }
+
+.switch {
+  width: 42px; height: 24px;
+  background: var(--border2);
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 3px;
+  width: 18px; height: 18px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.wa-row.on .switch { background: var(--wa); }
+.wa-row.on .switch::after { transform: translateX(18px); }
+
+.wa-row-label { flex: 1; font-size: 14px; font-weight: 700; }
+.wa-row-label small { display: block; font-size: 12px; font-weight: 400; color: var(--text3); margin-top: 1px; }
+
+.wa-extra { display: none; }
+.wa-extra.show { display: block; }
+
+/* CONTACTS */
+.contacts-wrap { margin-bottom: 14px; }
+.contact-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--s3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.contact-chip .cn { font-weight: 700; }
+.contact-chip .cp { font-family: var(--mono); font-size: 11px; color: var(--text3); flex: 1; }
+.contact-chip .cx {
+  background: none; border: none;
+  color: var(--text3); cursor: pointer; font-size: 14px;
+  padding: 2px 5px; border-radius: 4px;
+}
+.contact-chip .cx:hover { color: var(--red); background: var(--red-dim); }
+
+.contact-add-row { display: flex; gap: 8px; }
+.contact-add-row input { flex: 1; }
+.contact-add-row input:last-of-type { max-width: 160px; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: none;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.btn-green {
+  background: var(--green);
+  color: #000;
+  width: 100%;
+  font-size: 15px;
+}
+.btn-green:hover { background: #00ffb3; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,229,160,0.3); }
+.btn-green:active { transform: translateY(0); }
+
+.btn-ghost {
+  background: var(--s2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+
+.btn-sm { padding: 9px 14px; font-size: 13px; }
+
+/* ═══════════════════════════════════════
+   ALARM CARDS
+═══════════════════════════════════════ */
+.alarms-list { display: flex; flex-direction: column; gap: 10px; }
+
+.alarm-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  animation: cardIn 0.3s ease both;
+  transition: border-color 0.2s, background 0.2s;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.alarm-card:hover { border-color: var(--border2); }
+.alarm-card.active { border-color: rgba(0,229,160,0.2); }
+.alarm-card.off { opacity: 0.45; }
+
+.alarm-time-col { text-align: left; flex-shrink: 0; min-width: 72px; }
+.alarm-time {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--green);
+  letter-spacing: -1px;
+}
+.alarm-days-label { font-size: 10px; color: var(--text3); margin-top: 4px; font-weight: 600; }
+
+.alarm-body { flex: 1; min-width: 0; }
+.alarm-title-text { font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
+
+.alarm-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.badge-sound { background: var(--amber-dim); color: var(--amber); }
+.badge-wa { background: var(--wa-dim); color: var(--wa); }
+
+.alarm-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.toggle-switch {
+  width: 46px; height: 26px;
+  background: var(--border2);
+  border-radius: 13px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+}
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  left: 4px; top: 4px;
+  width: 18px; height: 18px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle-switch.on { background: var(--green); }
+.toggle-switch.on::after { transform: translateX(20px); }
+
+.del-btn {
+  background: none; border: none;
+  color: var(--text3); cursor: pointer;
+  font-size: 15px; padding: 3px 5px;
+  border-radius: 5px;
+  transition: color 0.15s;
+}
+.del-btn:hover { color: var(--red); }
+
+/* EMPTY STATE */
+.empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text3);
+}
+.empty .em { font-size: 44px; margin-bottom: 12px; }
+.empty p { font-size: 14px; line-height: 1.7; }
+
+/* ═══════════════════════════════════════
+   MODALS
+═══════════════════════════════════════ */
+.overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+.overlay.open { display: flex; }
+@media (min-width: 500px) {
+  .overlay { align-items: center; padding: 20px; }
+}
+
+.sheet {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 28px 24px 40px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  animation: sheetUp 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+@media (min-width: 500px) {
+  .sheet { border-radius: 20px; animation: modalIn 0.25s ease; }
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes modalIn {
+  from { transform: scale(0.95) translateY(10px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--border2);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+@media (min-width: 500px) { .sheet-handle { display: none; } }
+
+.sheet h3 { font-size: 18px; font-weight: 900; margin-bottom: 6px; }
+.sheet .sub { font-size: 13px; color: var(--text3); line-height: 1.6; margin-bottom: 20px; }
+.sheet .sub a { color: var(--green); text-decoration: none; }
+.sheet .sub a:hover { text-decoration: underline; }
+
+.btn-row { display: flex; gap: 10px; margin-top: 8px; }
+.btn-row .btn { flex: 1; }
+
+/* ═══════════════════════════════════════
+   RINGING SCREEN
+═══════════════════════════════════════ */
+.ring-screen {
+  display: none;
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 500;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+  padding: 40px 24px;
+}
+.ring-screen.on { display: flex; }
+
+.ring-orb {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--green) 0%, rgba(0,229,160,0.3) 60%, transparent 100%);
+  display: grid; place-items: center;
+  font-size: 50px;
+  animation: orbPulse 0.9s infinite alternate ease-in-out;
+  position: relative;
+}
+.ring-orb::before, .ring-orb::after {
+  content: '';
+  position: absolute; inset: -20px;
+  border-radius: 50%;
+  border: 2px solid var(--green);
+  opacity: 0;
+  animation: ringExpand 1.8s infinite;
+}
+.ring-orb::after { animation-delay: 0.9s; }
+
+@keyframes orbPulse {
+  from { transform: scale(0.95); box-shadow: 0 0 30px rgba(0,229,160,0.4); }
+  to { transform: scale(1.05); box-shadow: 0 0 60px rgba(0,229,160,0.7); }
+}
+@keyframes ringExpand {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.ring-time {
+  font-family: var(--mono);
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1;
+  letter-spacing: -2px;
+}
+.ring-title { font-size: 26px; font-weight: 900; }
+.ring-sub { font-size: 14px; color: var(--text3); }
+
+.btn-stop {
+  margin-top: 12px;
+  background: var(--red);
+  color: white;
+  border: none;
+  padding: 18px 56px;
+  border-radius: 50px;
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  animation: stopPulse 1.2s infinite alternate;
+}
+@keyframes stopPulse {
+  from { box-shadow: 0 0 0 0 rgba(255,64,96,0.5); }
+  to { box-shadow: 0 0 0 18px rgba(255,64,96,0); }
+}
+
+.ring-wa-status { font-size: 13px; color: var(--wa); }
+
+/* ═══════════════════════════════════════
+   TOASTS
+═══════════════════════════════════════ */
+#toasts {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  z-index: 600;
+  pointer-events: none;
+}
+.toast {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--s2);
+  border: 1px solid var(--border2);
+  white-space: nowrap;
+  animation: toastIn 0.25s ease both, toastOut 0.3s ease 2.7s both;
+}
+.toast.ok { border-color: rgba(0,229,160,0.4); color: var(--green); }
+.toast.err { border-color: rgba(255,64,96,0.4); color: var(--red); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(8px); } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">⚡</div>
+      <div class="brand-name">Alarm<em>Zap</em></div>
+    </div>
+    <div class="live-clock" id="clock">--:--:--</div>
+  </header>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-pill" id="apiPill" onclick="openApiModal()">
+      <div class="pip"></div>
+      <span id="apiPillText">API não configurada</span>
+    </div>
+    <div class="status-pill" id="notifPill">
+      <div class="pip"></div>
+      <span id="notifPillText">Notificações</span>
+    </div>
+  </div>
+
+  <!-- NEXT ALARM -->
+  <div class="next-alarm" id="nextAlarm">
+    <div class="next-alarm-icon">⏰</div>
+    <div class="next-alarm-info">
+      <div class="next-alarm-label">Próximo alarme</div>
+      <div class="next-alarm-name" id="nextName">—</div>
+      <div class="next-alarm-cd" id="nextCd">—</div>
+    </div>
+    <div class="next-alarm-time" id="nextTime">—</div>
+  </div>
+
+  <!-- ADD ALARM -->
+  <div class="section-label">Novo alarme</div>
+  <div class="add-card">
+    <div class="add-card-title">➕ <span class="accent">Criar alarme</span></div>
+
+    <div class="row2">
+      <div class="field">
+        <span class="field-label">Horário</span>
+        <input type="time" id="fTime" value="08:00">
+      </div>
+      <div class="field">
+        <span class="field-label">Título</span>
+        <input type="text" id="fTitle" placeholder="Ex: Reunião de vendas">
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Repetir nos dias</span>
+      <div class="days-row" id="daysRow">
+        <button class="day-btn" data-d="0">Dom</button>
+        <button class="day-btn on" data-d="1">Seg</button>
+        <button class="day-btn on" data-d="2">Ter</button>
+        <button class="day-btn on" data-d="3">Qua</button>
+        <button class="day-btn on" data-d="4">Qui</button>
+        <button class="day-btn on" data-d="5">Sex</button>
+        <button class="day-btn" data-d="6">Sáb</button>
+      </div>
+    </div>
+
+    <div class="wa-row" id="waToggle" onclick="toggleWA()">
+      <div class="switch"></div>
+      <div class="wa-row-label">
+        Enviar WhatsApp automático
+        <small>Dispara mensagens no horário do alarme</small>
+      </div>
+    </div>
+
+    <div class="wa-extra" id="waExtra">
+      <div class="field">
+        <span class="field-label">Mensagem</span>
+        <textarea id="fMsg" placeholder="Olá {nome}! Lembrete: {titulo} às {hora}.&#10;&#10;Variáveis disponíveis: {nome} {titulo} {hora}"></textarea>
+      </div>
+      <div class="field">
+        <span class="field-label">Contatos</span>
+        <div class="contacts-wrap" id="contactsWrap"></div>
+        <div class="contact-add-row">
+          <input type="text" id="cName" placeholder="Nome">
+          <input type="tel" id="cPhone" placeholder="+5511999998888">
+          <button class="btn btn-ghost btn-sm" onclick="addContact()">＋</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-green" onclick="saveAlarm()" style="margin-top:6px">✅ Salvar Alarme</button>
+  </div>
+
+  <!-- ALARMS LIST -->
+  <div class="section-label">Seus alarmes</div>
+  <div class="alarms-list" id="alarmsList"></div>
+
+</div><!-- /app -->
+
+<!-- RING SCREEN -->
+<div class="ring-screen" id="ringScreen">
+  <div class="ring-orb">⏰</div>
+  <div class="ring-time" id="ringTime">--:--</div>
+  <div class="ring-title" id="ringTitle">Alarme!</div>
+  <div class="ring-sub" id="ringSub"></div>
+  <div class="ring-wa-status" id="ringWaStatus"></div>
+  <button class="btn-stop" onclick="stopAlarm()">■ Parar Alarme</button>
+</div>
+
+<!-- API MODAL -->
+<div class="overlay" id="apiOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3>⚙️ Evolution API</h3>
+    <p class="sub">
+      Configure a conexão com sua instância da <strong>Evolution API</strong>.<br>
+      Não tem ainda? Siga o guia em <a href="https://doc.evolution-api.com" target="_blank">doc.evolution-api.com</a> ou hospede de graça no Railway.
+    </p>
+
+    <div class="field">
+      <span class="field-label">URL da Evolution API</span>
+      <input type="text" id="evUrl" placeholder="https://sua-api.railway.app">
+    </div>
+    <div class="field">
+      <span class="field-label">API Key (Global)</span>
+      <input type="text" id="evKey" placeholder="sua-chave-global">
+    </div>
+    <div class="field">
+      <span class="field-label">Nome da Instância</span>
+      <input type="text" id="evInst" placeholder="minha-instancia">
+    </div>
+
+    <button class="btn btn-green" onclick="saveApi()">🔌 Salvar e Testar</button>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeApiModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div id="toasts"></div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE & PERSISTENCE
+// ═══════════════════════════════════════
+const LS_ALARMS = 'az_alarms';
+const LS_API    = 'az_api';
+
+let alarms     = JSON.parse(localStorage.getItem(LS_ALARMS) || '[]');
+let apiCfg     = JSON.parse(localStorage.getItem(LS_API)    || 'null');
+let tmpContacts = [];
+let waEnabled  = false;
+let audioCtx   = null;
+let beepTimer  = null;
+let checkTimer = null;
+let ringing    = null;
+
+const DAY_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+// ═══════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Days toggle
+  document.querySelectorAll('.day-btn').forEach(b =>
+    b.addEventListener('click', () => b.classList.toggle('on'))
+  );
+
+  initNotifications();
+  updateApiPill();
+  renderAlarms();
+  setInterval(tickClock, 1000);
+  tickClock();
+  checkTimer = setInterval(checkAlarms, 15000);
+  checkAlarms();
+});
+
+// ═══════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════
+function tickClock() {
+  const n = new Date();
+  document.getElementById('clock').textContent = n.toLocaleTimeString('pt-BR');
+  updateNextAlarm();
+}
+
+// ═══════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════
+async function initNotifications() {
+  const pill = document.getElementById('notifPill');
+  if (!('Notification' in window)) {
+    pill.querySelector('span').textContent = 'Notif. não suportadas';
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    pill.classList.add('ok');
+    pill.querySelector('span').textContent = 'Notificações ativas';
+    return;
+  }
+  pill.querySelector('span').textContent = 'Clique para ativar notif.';
+  pill.classList.add('warn');
+  pill.style.cursor = 'pointer';
+  pill.onclick = async () => {
+    const r = await Notification.requestPermission();
+    if (r === 'granted') {
+      pill.classList.replace('warn','ok');
+      pill.querySelector('span').textContent = 'Notificações ativas';
+    }
+  };
+}
+
+// ═══════════════════════════════════════
+// API CONFIG
+// ═══════════════════════════════════════
+function openApiModal() {
+  if (apiCfg) {
+    document.getElementById('evUrl').value   = apiCfg.url   || '';
+    document.getElementById('evKey').value   = apiCfg.key   || '';
+    document.getElementById('evInst').value  = apiCfg.inst  || '';
+  }
+  document.getElementById('apiOverlay').classList.add('open');
+}
+function closeApiModal() { document.getElementById('apiOverlay').classList.remove('open'); }
+
+function saveApi() {
+  const url  = document.getElementById('evUrl').value.trim();
+  const key  = document.getElementById('evKey').value.trim();
+  const inst = document.getElementById('evInst').value.trim();
+  if (!url || !key || !inst) { toast('Preencha todos os campos', 'err'); return; }
+  apiCfg = { url: url.replace(/\/$/, ''), key, inst };
+  localStorage.setItem(LS_API, JSON.stringify(apiCfg));
+  updateApiPill();
+  closeApiModal();
+  toast('✅ API Evolution salva!', 'ok');
+}
+
+function updateApiPill() {
+  const pill = document.getElementById('apiPill');
+  const span = document.getElementById('apiPillText');
+  if (apiCfg) {
+    pill.classList.add('ok');
+    span.textContent = `Evolution: ${apiCfg.inst}`;
+  } else {
+    pill.classList.remove('ok');
+    span.textContent = 'Configurar Evolution API';
+  }
+}
+
+// ═══════════════════════════════════════
+// WA TOGGLE
+// ═══════════════════════════════════════
+function toggleWA() {
+  waEnabled = !waEnabled;
+  document.getElementById('waToggle').classList.toggle('on', waEnabled);
+  document.getElementById('waExtra').classList.toggle('show', waEnabled);
+}
+
+// ═══════════════════════════════════════
+// CONTACTS
+// ═══════════════════════════════════════
+function addContact() {
+  const name  = document.getElementById('cName').value.trim();
+  const phone = document.getElementById('cPhone').value.trim();
+  if (!name || !phone) { toast('Preencha nome e telefone', 'err'); return; }
+  tmpContacts.push({ name, phone });
+  renderContacts();
+  document.getElementById('cName').value  = '';
+  document.getElementById('cPhone').value = '';
+}
+
+function removeContact(i) { tmpContacts.splice(i,1); renderContacts(); }
+
+function renderContacts() {
+  document.getElementById('contactsWrap').innerHTML =
+    tmpContacts.map((c,i) => `
+      <div class="contact-chip">
+        <span class="cn">${c.name}</span>
+        <span class="cp">${c.phone}</span>
+        <button class="cx" onclick="removeContact(${i})">✕</button>
+      </div>
+    `).join('');
+}
+
+// ═══════════════════════════════════════
+// SAVE ALARM
+// ═══════════════════════════════════════
+function saveAlarm() {
+  const time  = document.getElementById('fTime').value;
+  const title = document.getElementById('fTitle').value.trim() || 'Alarme';
+  const msg   = document.getElementById('fMsg').value.trim() || 'Lembrete: {titulo} às {hora}';
+  const days  = [...document.querySelectorAll('.day-btn.on')].map(b => +b.dataset.d);
+
+  if (!time) { toast('Selecione um horário', 'err'); return; }
+
+  alarms.push({
+    id:       Date.now(),
+    time, title, msg,
+    days:     days.length ? days : [0,1,2,3,4,5,6],
+    active:   true,
+    wa:       waEnabled,
+    contacts: [...tmpContacts],
+  });
+
+  localStorage.setItem(LS_ALARMS, JSON.stringify(alarms));
+  renderAlarms();
+
+  // reset form
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fMsg').value   = '';
+  tmpContacts = [];
+  renderContacts();
+  waEnabled = false;
+  document.getElementById('waToggle').classList.remove('on');
+  document.getElementById('waExtra').classList.remove('show');
+  // reset days to Mon-Fri
+  document.querySelectorAll('.day-btn').forEach(b => {
+    const d = +b.dataset.d;
+    b.classList.toggle('on', d >= 1 && d <= 5);
+  });
+
+  toast('✅ Alarme criado!', 'ok');
+}
+
+function deleteAlarm(id) {
+  alarms = alarms.filter(a => a.id !== id);
+  localStorage.setItem(LS_ALARMS, JSON.stringify(alarms));
+  renderAlarms();
+}
+
+function toggleActive(id) {
+  const a = alarms.find(a => a.id === id);
+  if (a) { a.active = !a.active; localStorage.setItem(LS_ALARMS, JSON.stringify(alarms)); renderAlarms(); }
+}
+
+// ═══════════════════════════════════════
+// RENDER ALARMS
+// ═══════════════════════════════════════
+function renderAlarms() {
+  const list = document.getElementById('alarmsList');
+  if (!alarms.length) {
+    list.innerHTML = `<div class="empty"><div class="em">😴</div><p>Nenhum alarme criado.<br>Adicione um acima!</p></div>`;
+    return;
+  }
+  const sorted = [...alarms].sort((a,b) => a.time.localeCompare(b.time));
+  list.innerHTML = sorted.map(a => {
+    const dLabel = a.days.length === 7 ? 'Todos os dias' :
+      (a.days.length === 5 && !a.days.includes(0) && !a.days.includes(6)) ? 'Seg – Sex' :
+      a.days.map(d => DAY_LABELS[d]).join(' · ');
+    return `
+    <div class="alarm-card ${a.active ? 'active' : 'off'}">
+      <div class="alarm-time-col">
+        <div class="alarm-time">${a.time}</div>
+        <div class="alarm-days-label">${dLabel}</div>
+      </div>
+      <div class="alarm-body">
+        <div class="alarm-title-text">${a.title}</div>
+        <div class="alarm-badges">
+          <span class="badge badge-sound">⏰ Alarme</span>
+          ${a.wa ? `<span class="badge badge-wa">💬 ${a.contacts.length} contato${a.contacts.length !== 1 ? 's' : ''}</span>` : ''}
+        </div>
+      </div>
+      <div class="alarm-controls">
+        <button class="toggle-switch ${a.active ? 'on' : ''}" onclick="toggleActive(${a.id})"></button>
+        <button class="del-btn" onclick="deleteAlarm(${a.id})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// NEXT ALARM BANNER
+// ═══════════════════════════════════════
+function updateNextAlarm() {
+  const now      = new Date();
+  const dayNow   = now.getDay();
+  const minNow   = now.getHours() * 60 + now.getMinutes();
+  let nearest    = null;
+  let nearestMin = Infinity;
+
+  alarms.filter(a => a.active).forEach(a => {
+    const [h, m] = a.time.split(':').map(Number);
+    const alMin  = h * 60 + m;
+    for (let d = 0; d < 7; d++) {
+      const chkDay = (dayNow + d) % 7;
+      if (!a.days.includes(chkDay)) continue;
+      const diff = d === 0 ? (alMin - minNow) : (d * 1440 - minNow + alMin);
+      if (diff > 0 && diff < nearestMin) { nearestMin = diff; nearest = a; }
+      break;
+    }
+  });
+
+  const banner = document.getElementById('nextAlarm');
+  if (!nearest) { banner.classList.remove('show'); return; }
+  banner.classList.add('show');
+  document.getElementById('nextName').textContent = nearest.title;
+  document.getElementById('nextTime').textContent = nearest.time;
+  const h = Math.floor(nearestMin / 60), m = nearestMin % 60;
+  document.getElementById('nextCd').textContent =
+    h > 0 ? `em ${h}h ${m}min` : `em ${m} minuto${m !== 1 ? 's' : ''}`;
+}
+
+// ═══════════════════════════════════════
+// ALARM CHECK & FIRE
+// ═══════════════════════════════════════
+function checkAlarms() {
+  if (ringing) return;
+  const now = new Date();
+  const t   = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const day = now.getDay();
+  alarms.forEach(a => {
+    if (!a.active || a.time !== t || !a.days.includes(day)) return;
+    const key = `f_${a.id}_${t}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+    fireAlarm(a);
+  });
+}
+
+function fireAlarm(alarm) {
+  ringing = alarm;
+
+  // Screen
+  document.getElementById('ringTime').textContent  = alarm.time;
+  document.getElementById('ringTitle').textContent = alarm.title;
+  document.getElementById('ringSub').textContent   = '';
+  document.getElementById('ringWaStatus').textContent = '';
+  document.getElementById('ringScreen').classList.add('on');
+
+  // Sound
+  playSound();
+
+  // Notification
+  if (Notification.permission === 'granted') {
+    new Notification(`⏰ ${alarm.title}`, {
+      body: `Alarme: ${alarm.time}`,
+      requireInteraction: true,
+      tag: `alarm_${alarm.id}`,
+    });
+  }
+
+  // WhatsApp
+  if (alarm.wa && alarm.contacts.length) {
+    document.getElementById('ringWaStatus').textContent = `Enviando WhatsApp para ${alarm.contacts.length} contato(s)...`;
+    sendMessages(alarm);
+  }
+}
+
+function stopAlarm() {
+  ringing = null;
+  document.getElementById('ringScreen').classList.remove('on');
+  stopSound();
+}
+
+// ═══════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════
+function playSound() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function beep() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const env = audioCtx.createGain();
+      osc.connect(env); env.connect(audioCtx.destination);
+      // Two-tone alarm (police-style)
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(660, audioCtx.currentTime + 0.25);
+      osc.type = 'square';
+      env.gain.setValueAtTime(0.28, audioCtx.currentTime);
+      env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.55);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.55);
+    }
+    beep();
+    beepTimer = setInterval(beep, 700);
+  } catch(e) {}
+}
+
+function stopSound() {
+  clearInterval(beepTimer); beepTimer = null;
+  if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; }
+}
+
+// ═══════════════════════════════════════
+// SEND WHATSAPP via backend /api/send
+// ═══════════════════════════════════════
+async function sendMessages(alarm) {
+  let ok = 0, fail = 0;
+  for (const c of alarm.contacts) {
+    const msg = alarm.msg
+      .replace(/\{nome\}/g, c.name)
+      .replace(/\{titulo\}/g, alarm.title)
+      .replace(/\{hora\}/g, alarm.time);
+    try {
+      const res = await fetch('/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          evolutionUrl:  apiCfg.url,
+          evolutionKey:  apiCfg.key,
+          instanceName:  apiCfg.inst,
+          phone:         c.phone.replace(/\D/g, ''),
+          message:       msg,
+        }),
+      });
+      if (res.ok) { ok++; toast(`✅ WhatsApp enviado → ${c.name}`, 'ok'); }
+      else { fail++; toast(`❌ Falha → ${c.name}`, 'err'); }
+    } catch(e) { fail++; toast(`❌ Erro → ${c.name}`, 'err'); }
+  }
+  document.getElementById('ringWaStatus').textContent =
+    `WhatsApp: ${ok} enviados${fail ? `, ${fail} falhas` : ''} ✓`;
+}
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+function toast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+</script>
+</body>
+</html>
